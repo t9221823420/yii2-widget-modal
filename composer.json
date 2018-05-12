@@ -13,6 +13,7 @@
   ],
   "minimum-stability": "stable",
   "require": {
+	"karnbrockgmbh/yii2-modal-ajax": "@dev",
     "yozh/yii2-base": "@dev"
   },
   "extra": {
