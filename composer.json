@@ -1,0 +1,26 @@
+{
+  "name": "yozh/yii2-modal",
+  "description": "Description",
+  "type": "yii2-extension",
+  "keywords": ["yii2","extension","modal"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ivan Kryazhev",
+      "email": "t9221823420@gmail.com",
+      "homepage": "https://github.com/t9221823420"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "yozh/yii2-base": "@dev"
+  },
+  "extra": {
+    "_bootstrap": "yozh\\modal\\Bootstrap"
+  },
+  "autoload": {
+    "psr-4": {
+      "yozh\\modal\\": "src"
+    }
+  }
+}
