@@ -5,7 +5,7 @@
 	yozh.Modal = {};
 	
 	yozh.Modal.BUTTON_HIDE_CLASS = 'ACTION_BUTTON_TYPE_OK';
-
+	
 	var _pluginName = 'yozhModal';
 	var _context;
 	
@@ -134,14 +134,14 @@
 			}
 		};
 		
-		if( newScripts.length ){
+		if ( newScripts.length ) {
 			// Load each script tag
 			for ( var i = 0; i < newScripts.length; i += 1 ) {
 				jQuery.getScript( newScripts[ i ] + ( new Date().getTime() ), scriptLoaded );
 			}
 			
 		}
-		else if( inlineInjections.length ){
+		else if ( inlineInjections.length ) {
 			scriptLoaded();
 		}
 		
@@ -154,7 +154,18 @@
 		_context = this;
 		
 		this.element = element;
+		
+		var $element = jQuery( this.element );
+		
+		this.dialog = $element.find( '.modal-dialog' );
+		this.spinner = $element.find( '.spinner' );
+		this.header = $element.find( '.modal-header' );
+		this.body = $element.find( '.modal-body' );
+		this.footer = $element.find( '.modal-footer' );
+		
+		
 		this.config( options );
+		
 		this.init( options );
 		
 	};
@@ -166,24 +177,60 @@
 		
 		jQuery( _context.element ).off( 'show.bs.modal' ).on( 'show.bs.modal', _context.shown.bind( _context ) );
 		
-		jQuery( _context.element ).on( 'click', '.yozh-modal-button-hide', function(){
-			jQuery(_context.element).modal('hide');
-		});
+		jQuery( _context.element ).on( 'click', '.yozh-modal-button-hide', function () {
+			jQuery( _context.element ).modal( 'hide' );
+		} );
 		
 	};
 	
-	Modal.prototype.config = function ( options ) {
+	Modal.prototype.config = function ( _config ) {
 		
-		var $element = jQuery( this.element );
+		var _processSection = ( function ( _sectionName ) {
+			
+			if ( typeof _config[ _sectionName ] !== 'undefined' ) {
+				
+				if ( _config[ _sectionName ] === false ) {
+					this[ _sectionName ].hide();
+				}
+				else if ( _config[ _sectionName ] === true ) {
+					this[ _sectionName ].show();
+				}
+				else {
+					this[ _sectionName ].html( _config[ _sectionName ] ).show();
+				}
+				
+			}
+			
+			if ( typeof _config[ _sectionName + 'Options' ] !== 'undefined' ) {
+				
+				var _sectionNameOptions = _config[ _sectionName + 'Options' ];
+				
+				for ( var _option in _sectionNameOptions ) {
+					switch ( _option ) {
+						
+						case 'class':
+							
+							this[ _sectionName ].attr( 'class', 'modal-' + _sectionName + ' ' + _sectionNameOptions.class );
+							
+							break;
+						
+						default:
+							
+							//this[ _sectionName ].attr( _option, _sectionNameOptions[ _option ] );
+					}
+				}
+				
+			}
+			
+		} ).bind( this );
 		
-		this.dialog = $element.find( '.modal-dialog' );
-		this.spinner = $element.find( '.spinner' );
-		this.header = $element.find( '.modal-header' );
-		this.body = $element.find( '.modal-body' );
-		this.footer = $element.find( '.modal-footer' );
+		_processSection( 'header' );
+		_processSection( 'body' );
+		_processSection( 'footer' );
 		
-		this.url = options.url || this.url || '';
-		this.ajaxSubmit = options.ajaxSubmit || this.ajaxSubmit || true;
+		this.url = _config.url || this.url || '';
+		this.ajaxSubmit = _config.ajaxSubmit || this.ajaxSubmit || true;
+		
 	};
 	
 	/**
@@ -204,9 +251,9 @@
 		this.footer.hide();
 		this.spinner.show();
 		
-		this.header.removeClass (function ( _index, _className) {
-			return ( _className.match (/(^|\s)alert-\S+/g) || []).join(' ');
-		});
+		this.header.removeClass( function ( _index, _className ) {
+			return ( _className.match( /(^|\s)alert-\S+/g ) || [] ).join( ' ' );
+		} );
 		
 	}
 	
@@ -262,9 +309,9 @@
 		
 		if ( typeof ( _response.yozh || {} ).modal !== 'undefined' ) {
 			
-			this.processResponseElement( 'header', _response );
-			this.processResponseElement( 'body', _response );
-			this.processResponseElement( 'footer', _response );
+			this.processSectionWithResponse( 'header', _response );
+			this.processSectionWithResponse( 'body', _response );
+			this.processSectionWithResponse( 'footer', _response );
 			
 		}
 		else {
@@ -275,13 +322,13 @@
 		
 	}
 	
-	Modal.prototype.processResponseElement = function ( _elementName, _response ) {
+	Modal.prototype.processSectionWithResponse = function ( _sectionName, _response ) {
 		
-		if ( typeof ( ( _response.yozh.modal || {} )[ _elementName ] || {} ).text !== 'undefined' ) {
+		if ( typeof ( ( _response.yozh.modal || {} )[ _sectionName ] || {} ).text !== 'undefined' ) {
 			
-			this[ _elementName ].show();
+			this[ _sectionName ].show();
 			
-			return this.injectHtml( this[ _elementName ], _response.yozh.modal[ _elementName ].text );
+			return this.injectHtml( this[ _sectionName ], _response.yozh.modal[ _sectionName ].text );
 		}
 		
 	}
@@ -291,7 +338,7 @@
 		this.injectHtml( this.header, _response.statusText );
 		this.injectHtml( this.body, _response.responseText );
 		
-		this.header.addClass('alert alert-danger').show();
+		this.header.addClass( 'alert alert-danger' ).show();
 		this.showDialog();
 	}
 	/**
@@ -339,40 +386,12 @@
 		return false;
 	};
 	
-	
-	var _plugin = function ( _data, _params ) {
+	var _getContext = function () {
 		
-		var _context = $( this )[ 0 ];
-		var _Modal = $.data( _context, _pluginName );
-		var _data = _data || {};
+		console.log( this );
 		
-		/**
-		 * If not init
-		 */
-		if ( !_Modal ) {
-			_Modal = $.data( _context, _pluginName, new Modal( _context, _data ) );
-		}
-		
-		/**
-		 * If _data is String - that's command
-		 */
-		if ( ( typeof _data == 'string' || _data instanceof String ) && typeof _actions[ _data ] === "function" ) {
-			
-			_params = _params || {};
-			return _actions[ _data ]( _Modal, _params );
-			
-		}
-		else if ( typeof _data === "object" ) {
-			
-			_Modal.config( _data );
-			
-		}
-		
-		return this;
-	};
-	
-	
-	$.fn[ _pluginName ] = _plugin;
+		return $.data( this, _pluginName );
+	}
 	
 	var _actions = {};
 	
@@ -386,6 +405,38 @@
 		
 		console.log( _params.foo );
 	}
+	
+	
+	_actions.show = ( function () {
+		
+		$( _actions.context ).modal( 'show' );
+		
+	} );
+	
+	var _plugin = function ( _config ) {
+		
+		var _context = this[ 0 ];
+		var _Modal = $.data( _context, _pluginName );
+		var _config = _config || {};
+		
+		/**
+		 * If not init
+		 */
+		if ( !_Modal ) {
+			_Modal = $.data( _context, _pluginName, new Modal( _context, _config ) );
+		}
+		else if ( typeof _config === "object" ) {
+			_Modal.config( _config );
+		}
+		
+		// @TODO переделать
+		_actions.context = _context;
+		
+		return _actions;
+	};
+	
+	
+	$.fn[ _pluginName ] = _plugin;
 	
 } )
 ( jQuery );

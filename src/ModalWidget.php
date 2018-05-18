@@ -311,7 +311,7 @@ JS;
 	{
 		$output = '';
 		
-		if( $this->footer ?? false ) {
+		if( $this->footer !== false ) {
 			
 			Html::addCssClass( $this->footerOptions, [ 'widget' => 'modal-footer' ] );
 			
@@ -331,7 +331,7 @@ JS;
 	protected function _renderHeader()
 	{
 		
-		if( $this->header ?? false ) {
+		if( $this->header !== false ) {
 			
 			$button = $this->_renderCloseButton();
 			
