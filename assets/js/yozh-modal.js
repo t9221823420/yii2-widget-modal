@@ -2,12 +2,55 @@
 	
 	"use strict";
 	
-	yozh.Modal = {};
-	
-	yozh.Modal.BUTTON_HIDE_CLASS = 'ACTION_BUTTON_TYPE_OK';
-	
 	var _pluginName = 'yozhModal';
 	var _context;
+	
+	yozh.Modal = {
+		
+		BUTTON_HIDE_CLASS : 'yozh-modal-button-hide',
+		
+		pluginName : _pluginName,
+		
+		helpers : {}
+		
+	};
+	
+	yozh.Modal.helpers.confirm = function ( _config ) {
+		
+		if ( typeof yozh.ActiveButton !== 'undefined' ) {
+			
+			var _modalId = '#' + _pluginName;
+			var _$target = $( this );
+			
+			var _btnYes = strtr( yozh.ActiveButton.TEMPLATE, { '{type}' : 'yes', '{label}' : 'Yes', '{class}' : 'btn btn-success' } );
+			var _btnNo = strtr( yozh.ActiveButton.TEMPLATE, { '{type}' : 'no', '{label}' : 'No', '{class}' : 'btn btn-danger' } )
+			
+			_config = $.extend( {
+				header : false,
+				body : 'Please, confirm your action.',
+				footer : _btnYes + _btnNo,
+			}, _config || {});
+			
+			$( _modalId ).yozhModal( _config ).show();
+			
+			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS ).addClass( yozh.Modal.BUTTON_HIDE_CLASS );
+			
+			var _deferred = $.Deferred();
+			
+			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-yes' ).one( 'click', function () {
+				_deferred.resolve();
+				_$target.triggerHandler( 'yozh.ActiveButton.done', [ _$target ] );
+			} )
+			
+			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-no' ).one( 'click', function () {
+				_deferred.reject();
+				_$target.triggerHandler( 'yozh.ActiveButton.fail', [ _$target ] );
+			} )
+			
+			return _deferred
+		}
+		
+	}
 	
 	/**
 	 * Retrieves the script tags in document
@@ -178,7 +221,7 @@
 		jQuery( _context.element ).off( 'show.bs.modal' ).on( 'show.bs.modal', _context.shown.bind( _context ) );
 		
 		jQuery( _context.element ).on( 'click', '.yozh-modal-button-hide', function () {
-			jQuery( _context.element ).modal( 'hide' );
+			jQuery( this ).parents( '.yozh-modal' ).modal( 'hide' );
 		} );
 		
 	};
@@ -215,8 +258,8 @@
 							break;
 						
 						default:
-							
-							//this[ _sectionName ].attr( _option, _sectionNameOptions[ _option ] );
+						
+						//this[ _sectionName ].attr( _option, _sectionNameOptions[ _option ] );
 					}
 				}
 				
@@ -415,24 +458,29 @@
 	
 	var _plugin = function ( _config ) {
 		
-		var _context = this[ 0 ];
-		var _Modal = $.data( _context, _pluginName );
-		var _config = _config || {};
-		
-		/**
-		 * If not init
-		 */
-		if ( !_Modal ) {
-			_Modal = $.data( _context, _pluginName, new Modal( _context, _config ) );
+		if ( typeof this[ 0 ] !== 'undefined' ) {
+			
+			var _context = this[ 0 ];
+			var _Modal = $.data( _context, _pluginName );
+			var _config = _config || {};
+			
+			/**
+			 * If not init
+			 */
+			if ( !_Modal ) {
+				_Modal = $.data( _context, _pluginName, new Modal( _context, _config ) );
+			}
+			else if ( typeof _config === "object" ) {
+				_Modal.config( _config );
+			}
+			
+			// @TODO переделать
+			_actions.context = _context;
+			
+			return _actions;
+			
 		}
-		else if ( typeof _config === "object" ) {
-			_Modal.config( _config );
-		}
 		
-		// @TODO переделать
-		_actions.context = _context;
-		
-		return _actions;
 	};
 	
 	
