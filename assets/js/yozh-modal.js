@@ -2,14 +2,13 @@
 	
 	"use strict";
 	
-	var _pluginName = 'yozhModal';
 	var _context;
 	
 	yozh.Modal = {
 		
-		BUTTON_HIDE_CLASS : 'yozh-modal-button-hide',
+		pluginId : 'yozhModal',
 		
-		pluginName : _pluginName,
+		BUTTON_HIDE_CLASS : 'yozh-modal-button-hide',
 		
 		helpers : {}
 		
@@ -19,11 +18,20 @@
 		
 		if ( typeof yozh.ActiveButton !== 'undefined' ) {
 			
-			var _modalId = '#' + _pluginName;
+			var _modalId = '#' + yozh.Modal.pluginId;
 			var _$target = $( this );
 			
-			var _btnYes = strtr( yozh.ActiveButton.TEMPLATE, { '{type}' : 'yes', '{label}' : 'Yes', '{class}' : 'btn btn-success' } );
-			var _btnNo = strtr( yozh.ActiveButton.TEMPLATE, { '{type}' : 'no', '{label}' : 'No', '{class}' : 'btn btn-danger' } )
+			var _btnYes = strtr( yozh.ActiveButton.TEMPLATE, { 
+				'{type}' : 'yes',
+				'{label}' : 'Yes',
+				'{class}' : 'btn btn-success ' + yozh.Modal.BUTTON_HIDE_CLAS
+			} );
+			
+			var _btnNo = strtr( yozh.ActiveButton.TEMPLATE, { 
+				'{type}' : 'no', 
+				'{label}' : 'No', 
+				'{class}' : 'btn btn-danger ' + yozh.Modal.BUTTON_HIDE_CLAS 
+			} );
 			
 			_config = $.extend( {
 				header : false,
@@ -33,18 +41,16 @@
 			
 			$( _modalId ).yozhModal( _config ).show();
 			
-			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS ).addClass( yozh.Modal.BUTTON_HIDE_CLASS );
-			
 			var _deferred = $.Deferred();
 			
 			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-yes' ).one( 'click', function () {
 				_deferred.resolve();
-				_$target.triggerHandler( 'yozh.ActiveButton.done', [ _$target ] );
+				_$target.triggerHandler( 'yozh.ActiveButton.yes', [ _$target ] );
 			} )
 			
 			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-no' ).one( 'click', function () {
 				_deferred.reject();
-				_$target.triggerHandler( 'yozh.ActiveButton.fail', [ _$target ] );
+				_$target.triggerHandler( 'yozh.ActiveButton.no', [ _$target ] );
 			} )
 			
 			return _deferred
@@ -433,7 +439,7 @@
 		
 		console.log( this );
 		
-		return $.data( this, _pluginName );
+		return $.data( this, yozh.Modal.pluginId );
 	}
 	
 	var _actions = {};
@@ -461,14 +467,14 @@
 		if ( typeof this[ 0 ] !== 'undefined' ) {
 			
 			var _context = this[ 0 ];
-			var _Modal = $.data( _context, _pluginName );
+			var _Modal = $.data( _context, yozh.Modal.pluginId );
 			var _config = _config || {};
 			
 			/**
 			 * If not init
 			 */
 			if ( !_Modal ) {
-				_Modal = $.data( _context, _pluginName, new Modal( _context, _config ) );
+				_Modal = $.data( _context, yozh.Modal.pluginId, new Modal( _context, _config ) );
 			}
 			else if ( typeof _config === "object" ) {
 				_Modal.config( _config );
@@ -484,7 +490,7 @@
 	};
 	
 	
-	$.fn[ _pluginName ] = _plugin;
+	$.fn[ yozh.Modal.pluginId ] = _plugin;
 	
 } )
 ( jQuery );
