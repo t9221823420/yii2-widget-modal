@@ -14,43 +14,44 @@
 		
 	};
 	
-	yozh.Modal.helpers.confirm = function ( _config ) {
+	yozh.Modal.helpers.confirm = function ( _$target, _options ) {
 		
 		if ( typeof yozh.ActiveButton !== 'undefined' ) {
 			
 			var _modalId = '#' + yozh.Modal.pluginId;
-			var _$target = $( this );
+			
+			_$target = _$target || $( _modalId );
 			
 			var _btnYes = strtr( yozh.ActiveButton.TEMPLATE, { 
 				'{type}' : 'yes',
 				'{label}' : 'Yes',
-				'{class}' : 'btn btn-success ' + yozh.Modal.BUTTON_HIDE_CLAS
+				'{class}' : 'btn btn-success ' + yozh.Modal.BUTTON_HIDE_CLASS
 			} );
 			
 			var _btnNo = strtr( yozh.ActiveButton.TEMPLATE, { 
 				'{type}' : 'no', 
 				'{label}' : 'No', 
-				'{class}' : 'btn btn-danger ' + yozh.Modal.BUTTON_HIDE_CLAS 
+				'{class}' : 'btn btn-danger ' + yozh.Modal.BUTTON_HIDE_CLASS
 			} );
 			
-			_config = $.extend( {
+			_options = $.extend( {
 				header : false,
 				body : 'Please, confirm your action.',
 				footer : _btnYes + _btnNo,
-			}, _config || {});
+			}, _options || {});
 			
-			$( _modalId ).yozhModal( _config ).show();
+			$( _modalId ).yozhModal( _options ).show();
 			
 			var _deferred = $.Deferred();
 			
 			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-yes' ).one( 'click', function () {
-				_deferred.resolve();
-				_$target.triggerHandler( 'yozh.ActiveButton.yes', [ _$target ] );
+				_deferred.resolve( _$target );
+				_$target.triggerHandler( 'yozh.ActiveButton.click.yes', [ _$target ] );
 			} )
 			
 			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-no' ).one( 'click', function () {
-				_deferred.reject();
-				_$target.triggerHandler( 'yozh.ActiveButton.no', [ _$target ] );
+				_deferred.reject( _$target );
+				_$target.triggerHandler( 'yozh.ActiveButton.click.no', [ _$target ] );
 			} )
 			
 			return _deferred
