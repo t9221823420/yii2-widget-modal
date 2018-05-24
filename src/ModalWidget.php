@@ -10,7 +10,7 @@ namespace yozh\modal;
 
 use yii\bootstrap\Html;
 use yii\bootstrap\Widget;
-use yozh\base\components\ArrayHelper;
+use yozh\base\components\utils\ArrayHelper;
 use yozh\widget\traits\BaseWidgetTrait;
 
 /**
