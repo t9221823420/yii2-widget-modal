@@ -2,13 +2,15 @@
 	
 	"use strict";
 	
-	var _context;
-	
 	yozh.Modal = {
 		
 		pluginId : 'yozhModal',
 		
 		BUTTON_HIDE_CLASS : 'yozh-modal-button-hide',
+		
+		EVENT_SUBMIT : 'yozh.Modal.submit',
+		EVENT_BEFORE_SUBMIT : 'yozh.Modal.beforeSubmit',
+		EVENT_FAIL_SUBMIT : 'yozh.Modal.failSubmit',
 		
 		helpers : {}
 		
@@ -20,17 +22,17 @@
 			
 			var _modalId = '#' + yozh.Modal.pluginId;
 			
-			_$target = _$target || $( _modalId );
+			_$target = _$target || jQuery( _modalId );
 			
-			var _btnYes = strtr( yozh.ActiveButton.TEMPLATE, { 
+			var _btnYes = strtr( yozh.ActiveButton.TEMPLATE, {
 				'{type}' : 'yes',
 				'{label}' : 'Yes',
 				'{class}' : 'btn btn-success ' + yozh.Modal.BUTTON_HIDE_CLASS
 			} );
 			
-			var _btnNo = strtr( yozh.ActiveButton.TEMPLATE, { 
-				'{type}' : 'no', 
-				'{label}' : 'No', 
+			var _btnNo = strtr( yozh.ActiveButton.TEMPLATE, {
+				'{type}' : 'no',
+				'{label}' : 'No',
 				'{class}' : 'btn btn-danger ' + yozh.Modal.BUTTON_HIDE_CLASS
 			} );
 			
@@ -38,18 +40,18 @@
 				header : false,
 				body : 'Please, confirm your action.',
 				footer : _btnYes + _btnNo,
-			}, _options || {});
+			}, _options || {} );
 			
-			$( _modalId ).yozhModal( _options ).show();
+			jQuery( _modalId ).yozhModal( _options ).show();
 			
 			var _deferred = $.Deferred();
 			
-			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-yes' ).one( 'click', function () {
+			jQuery( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-yes' ).one( 'click', function () {
 				_deferred.resolve( _$target );
 				_$target.triggerHandler( 'yozh.ActiveButton.click.yes', [ _$target ] );
 			} )
 			
-			$( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-no' ).one( 'click', function () {
+			jQuery( _modalId ).find( '.modal-footer .' + yozh.ActiveButton.WIDGET_CLASS + '-no' ).one( 'click', function () {
 				_deferred.reject( _$target );
 				_$target.triggerHandler( 'yozh.ActiveButton.click.no', [ _$target ] );
 			} )
@@ -89,9 +91,9 @@
 	 */
 	Modal.prototype.injectHtml = function ( $element, _response ) {
 		
+		var _context = this;
 		var $html = jQuery( '<root>' + _response + '</root>' );
 		var $assets = jQuery( '<root>' );
-		var _context = this;
 		
 		var knownScripts = Modal.loadedScripts;
 		var knownCssLinks = Modal.loadedCSS;
@@ -128,8 +130,6 @@
 		// Scripts that haven't yet been loaded need to be added to the end of the body
 		$html.find( 'script' ).each( function ( index, element ) {
 			
-			var _check = jQuery( this );
-			
 			var src = jQuery( this ).attr( "src" );
 			
 			if ( typeof src === 'undefined' ) {
@@ -149,7 +149,9 @@
 		} );
 		
 		if ( this.ajaxSubmit === true ) {
-			$html.find( 'form' ).each( this.bindAjaxSubmit );
+			$html.find( 'form' ).each( function ( _index, _form ) {
+				_context.bindAjaxSubmit( _form );
+			} );
 		}
 		
 		
@@ -201,7 +203,7 @@
 	
 	function Modal( element, options ) {
 		
-		_context = this;
+		//_context = this;
 		
 		this.element = element;
 		
@@ -225,11 +227,12 @@
 	
 	Modal.prototype.init = function ( options ) {
 		
-		jQuery( _context.element ).off( 'show.bs.modal' ).on( 'show.bs.modal', _context.shown.bind( _context ) );
+		jQuery( this.element ).off( 'show.bs.modal' ).on( 'show.bs.modal', this.shown.bind( this ) );
 		
-		jQuery( _context.element ).on( 'click', '.yozh-modal-button-hide', function () {
-			jQuery( this ).parents( '.yozh-modal' ).modal( 'hide' );
-		} );
+		jQuery( this.element )
+			.on( 'click', '.yozh-modal-button-hide', function () {
+				jQuery( this ).parents( '.yozh-modal' ).modal( 'hide' );
+			} );
 		
 	};
 	
@@ -278,7 +281,7 @@
 		_processSection( 'body' );
 		_processSection( 'footer' );
 		
-		this.url = _config.url || this.url || '';
+		this.url = _config.url || this.url || false;
 		this.ajaxSubmit = _config.ajaxSubmit || this.ajaxSubmit || true;
 		
 	};
@@ -287,9 +290,9 @@
 	 * Requests the content of the modal and injects it, called after the
 	 * modal is shown
 	 */
-	Modal.prototype.shown = function () {
+	Modal.prototype.shown = function ( e ) {
 		
-		if ( this.url ) {
+		if ( e.target == this.element && this.url ) {
 			this.load();
 		}
 	};
@@ -329,6 +332,8 @@
 	 * modal is shown
 	 */
 	Modal.prototype.load = function () {
+		
+		var _context = this;
 		
 		_context.hideAll();
 		
@@ -394,9 +399,10 @@
 	/**
 	 * Adds event handlers to the form to check for submit
 	 */
-	Modal.prototype.bindAjaxSubmit = function ( index, _element ) {
+	Modal.prototype.bindAjaxSubmit = function ( _form ) {
 		
-		var $form = jQuery( _element );
+		var _context = this;
+		var $form = jQuery( _form );
 		
 		$form.on( 'submit', function ( e ) {
 			
@@ -410,21 +416,26 @@
 					contentType : false,
 					context : this,
 					beforeSend : function ( xhr, settings ) {
-						jQuery( this.element ).triggerHandler( 'yozh.Modal.beforeSubmit', [ xhr, settings ] );
+						jQuery( this.element ).triggerHandler( yozh.Modal.EVENT_BEFORE_SUBMIT, [ xhr, settings ] );
 					},
 				} )
 				.done( function ( _response, status, xhr ) {
 					
-					_context.processResponse( _response, status, xhr );
+					if ( _response == true ) {
+						jQuery( _context.element ).modal( 'hide' );
+					}
+					else {
+						_context.processResponse( _response, status, xhr );
+					}
 					
-					jQuery( _context.element ).triggerHandler( 'yozh.Modal.submit', [ _response, status, xhr ] );
+					jQuery( _context.element ).triggerHandler( yozh.Modal.EVENT_SUBMIT, [ _response, status, xhr ] );
 					
 				} )
 				.fail( function ( _response, status, xhr ) {
 					
 					_context.processFail( _response, status, xhr );
 					
-					jQuery( _context.element ).triggerHandler( 'yozh.Modal.failSubmit', [ _response, status, xhr ] );
+					jQuery( _context.element ).triggerHandler( yozh.Modal.EVENT_FAIL_SUBMIT, [ _response, status, xhr ] );
 					
 				} )
 			;
@@ -437,8 +448,6 @@
 	};
 	
 	var _getContext = function () {
-		
-		console.log( this );
 		
 		return $.data( this, yozh.Modal.pluginId );
 	}
@@ -459,7 +468,7 @@
 	
 	_actions.show = ( function () {
 		
-		$( _actions.context ).modal( 'show' );
+		jQuery( _actions.context ).modal( 'show' );
 		
 	} );
 	

@@ -8,8 +8,9 @@
 
 namespace yozh\modal;
 
-use yii\bootstrap\Html;
+use yii\bootstrap4\Html;
 use yii\bootstrap\Widget;
+use yii\helpers\Url;
 use yozh\base\components\utils\ArrayHelper;
 use yozh\widget\traits\BaseWidgetTrait;
 
@@ -37,14 +38,17 @@ use yozh\widget\traits\BaseWidgetTrait;
  */
 class ModalWidget extends Widget
 {
-	use BaseWidgetTrait{
+	use BaseWidgetTrait {
 		init as public baseInitTarit;
 	}
 	
+	const PLUGIN_ID = 'yozhModal';
 	
+	/*
 	const SIZE_LARGE   = "modal-lg";
 	const SIZE_SMALL   = "modal-sm";
 	const SIZE_DEFAULT = "";
+	*/
 	
 	const JS_BUTTON_HIDE_CLASS = 'yozh-modal-button-hide';
 	
@@ -141,8 +145,7 @@ class ModalWidget extends Widget
 			. "\n" . $this->_renderToggleButton()
 			. "\n" . $this->_renderWrapBegin()
 			. "\n" . $this->_renderHeader()
-			. "\n" . $this->_renderBodyBegin()
-		;
+			. "\n" . $this->_renderBodyBegin();
 		
 		print $output;
 	}
@@ -155,8 +158,7 @@ class ModalWidget extends Widget
 		$output = ''
 			. "\n" . $this->_renderBodyEnd()
 			. "\n" . $this->_renderFooter()
-			. "\n" . $this->_renderWrapEnd()
-		;
+			. "\n" . $this->_renderWrapEnd();
 		
 		print $output;
 		
@@ -231,14 +233,24 @@ JS;
 	{
 		if( $toggleButton = $this->toggleButton ) {
 			
-			$tag   = ArrayHelper::remove( $toggleButton, 'tag', 'button' );
-			$label = ArrayHelper::remove( $toggleButton, 'label', 'Show' );
-			
-			if( $tag === 'button' && !isset( $toggleButton['type'] ) ) {
-				$toggleButton['type'] = 'button';
+			if( is_array( $toggleButton ) ) {
+				
+				$tag   = ArrayHelper::remove( $toggleButton, 'tag', 'button' );
+				$label = ArrayHelper::remove( $toggleButton, 'label', 'Show' );
+				
+				if( $tag === 'button' && !isset( $toggleButton['type'] ) ) {
+					$toggleButton['type'] = 'button';
+				}
+				
+				return Html::tag( $tag, $label, $toggleButton );
+				
+			}
+			else {
+				
+				return $toggleButton;
+				
 			}
 			
-			return Html::tag( $tag, $label, $toggleButton );
 		}
 	}
 	
@@ -276,11 +288,15 @@ JS;
 		
 		Html::addCssClass( $this->options, [ 'widget' => 'yozh-modal fade modal' ] );
 		
-		if( $this->clientOptions !== false ) {
+		if( is_array( $this->clientOptions ) ) {
 			$this->clientOptions = array_merge( [ 'show' => false ], $this->clientOptions );
 		}
 		
-		if( $this->closeButton !== false ) {
+		if( is_array( $this->url ) ) {
+			$this->url = Url::to( $this->url );
+		}
+		
+		if( is_array( $this->closeButton ) ) {
 			
 			$this->closeButton = array_merge( [
 				'data-dismiss' => 'modal',
@@ -290,7 +306,7 @@ JS;
 			
 		}
 		
-		if( $this->toggleButton !== false ) {
+		if( is_array( $this->toggleButton ) ) {
 			
 			$this->toggleButton = array_merge( [
 				'data-toggle' => 'modal',
