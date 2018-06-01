@@ -8,7 +8,7 @@
 
 namespace yozh\modal;
 
-use yii\bootstrap4\Html;
+use yii\helpers\Html;
 use yii\bootstrap\Widget;
 use yii\helpers\Url;
 use yozh\base\components\utils\ArrayHelper;
